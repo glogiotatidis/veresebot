@@ -7,6 +7,7 @@ import persistent
 import ZODB, ZODB.FileStorage
 import BTrees.OOBTree
 import transaction
+from tzwhere import tzwhere
 
 import config
 from log import logger
@@ -18,7 +19,7 @@ class Entry(object):
         self.user_id = user_id
         self.amount = amount
         self.reason = '' if not reason else reason
-        self.date = arrow.get(date)
+        self.date = date
 
 
 class Tab(persistent.Persistent):
@@ -26,6 +27,10 @@ class Tab(persistent.Persistent):
         self.user_id = user_id
         self.grandtotal = 0
         self.entries = []
+        self.tz = 'UTC'
+
+    def set_timezone(self, tz):
+        self.tz = tz
 
     def add(self, id, user_id, date, amount, reason=''):
         for v in self.entries:
@@ -35,6 +40,7 @@ class Tab(persistent.Persistent):
             elif v.id < id:
                 break
 
+        date = arrow.get(date).to(self.tz)
         entry = Entry(id, user_id, amount, date, reason)
         for position, v in enumerate(self.entries):
             if v.id < entry.id:
@@ -75,6 +81,8 @@ class VereseBot(object):
 
     def __init__(self):
         self.db = DB()
+        self.tz = tzwhere.tzwhere()
+
         # Connect to Telegram
         self._bot = telegram.Bot(token=config.token)
         self.queue = {}
@@ -97,9 +105,12 @@ class VereseBot(object):
         return updates
 
     def is_command(self, message):
-        return message.text.startswith('/')
+        return (message.text and message.text.startswith('/')) or message.location
 
     def get_command(self, message):
+        if message.location:
+            return 'location', message.location
+
         try:
             cmd, content = message.text[1:].split(' ', 1)
         except ValueError:
@@ -133,6 +144,12 @@ class VereseBot(object):
 
         logger.debug('Calling process_{}'.format(cmd))
         getattr(self, 'process_{}'.format(cmd))(message, content)
+
+    def process_location(self, message, content):
+        tab, created = self.db.get_or_create_tab(message.chat.id)
+        tz = self.tz.tzNameAt(content.latitude, content.longitude)
+        tab.set_timezone(tz)
+        self.say(message, 'Timezone {}'.format(tz))
 
     def process_daytotal(self, message, content):
         pass
