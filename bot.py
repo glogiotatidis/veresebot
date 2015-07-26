@@ -22,16 +22,17 @@ class User(persistent.Persistent):
         self.id = user_id
 
     def update(self, first_name, last_name, username):
-        self.first_name = first_name
-        self.last_name = last_name
-        self.username = username
+        self.first_name = first_name or ''
+        self.last_name = last_name or ''
+        self.username = username or ''
+        self._p_changed__ = True
 
 
 class Entry(object):
-    def __init__(self, id, user_id, amount, date, reason=None):
+    def __init__(self, message_id, user_id, amount, date, reason=None):
         if not reason:
             reason = 'stuff'
-        self.id = id
+        self.message_id = message_id
         self.user_id = user_id
         self.amount = amount
         self.reason = '' if not reason else reason
@@ -60,7 +61,7 @@ class Tab(persistent.Persistent):
 
     def add(self, message_id, user_id, date, amount, reason=''):
         for v in self.entries:
-            if v.id == message_id:
+            if v.message_id == message_id:
                 # Already in list, ignore
                 logger.debug('not adding {}, already in list'.format(amount))
                 return
@@ -190,7 +191,7 @@ class TotalCommand(BotCommand):
 
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/total'):
+        if message.text and message.text.startswith('/total'):
             return True
 
 
@@ -223,18 +224,18 @@ class AddCommand(BotCommand):
             self._say(message, "Nope, I don't get ya")
             return
         self.add(message.chat.id, message.from_user.id, message.message_id, message.date, amount, reason)
-        self._say(message, 'Added {}'.format(amount))
+        self._say(message, '{} Added {} '.format(telegram.Emoji.THUMBS_UP_SIGN, amount))
 
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/add'):
+        if message.text and message.text.startswith('/add'):
             return True
 
 
 class RemoveCommand(AddCommand):
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/remove'):
+        if message.text and message.text.startswith('/remove'):
             return True
 
     def remove(self, tab_id, user_id, message_id, date, amount, reason=''):
@@ -252,22 +253,10 @@ class RemoveCommand(AddCommand):
         self._say(message, 'Removed {}'.format(amount))
 
 
-class StartCommand(BotCommand):
-    def default(self, message):
-        chat_id = message.chat.id
-        tab, created = self._db.get_or_create_tab(chat_id)
-        self._say(message, 'Welcome mate, I just created a new tab for you.')
-
-    @classmethod
-    def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/start'):
-            return True
-
-
 class ClearCommand(BotCommand):
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/clear'):
+        if message.text and message.text.startswith('/clear'):
             return True
 
     def default(self, message):
@@ -283,7 +272,7 @@ class ClearCommand(BotCommand):
 class LastCommand(BotCommand):
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/last'):
+        if message.text and message.text.startswith('/last'):
             return True
 
     def default(self, message):
@@ -301,7 +290,7 @@ class LastCommand(BotCommand):
 class PingCommand(BotCommand):
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/ping'):
+        if message.text and message.text.startswith('/ping'):
             return True
 
     def default(self, message):
@@ -311,7 +300,7 @@ class PingCommand(BotCommand):
 class SplitCommand(BotCommand):
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/split'):
+        if message.text and message.text.startswith('/split'):
             return True
 
     def default(self, message):
@@ -329,7 +318,7 @@ class SplitCommand(BotCommand):
 class ExportCommand(BotCommand):
     @classmethod
     def match(cls, message):
-        if hasattr(message, 'text') and message.text.startswith('/export'):
+        if message.text and message.text.startswith('/export'):
             return True
 
     def default(self, message):
@@ -342,9 +331,11 @@ class ExportCommand(BotCommand):
         csvfile = NamedTemporaryFile(suffix='.csv', prefix='verese-export-', delete=False)
 
         spamwriter = csv.writer(csvfile, delimiter=',')
-        spamwriter.writerow(['Amount', 'Date', 'Reason'])
+        spamwriter.writerow(['Perons', 'Amount', 'Date', 'Reason'])
         for entry in tab.entries:
-            spamwriter.writerow([entry.amount, entry.date, entry.reason])
+            user = self._db.root.users[entry.user_id]
+            user_repr = '{} {}'.format(user.first_name, user.last_name)
+            spamwriter.writerow([user_repr, entry.amount, entry.date, entry.reason])
         csvfile.close()
 
         self.bot._bot.sendDocument(chat_id=message.chat.id, document=open(csvfile.name, 'rb'))
@@ -352,7 +343,7 @@ class ExportCommand(BotCommand):
 
 
 class VereseBot(object):
-    COMMANDS = [StartCommand, AddCommand, RemoveCommand, TotalCommand,
+    COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
                 SplitCommand]
 
@@ -395,6 +386,11 @@ class VereseBot(object):
         user.update(message.from_user.first_name,
                     message.from_user.last_name,
                     message.from_user.username)
+
+        # Register tab
+        tab, created = self.db.get_or_create_tab(message.chat.id)
+        if created:
+            self.say(message, 'Welcome mate, I just created a new tab for you.')
 
         if message.reply_to_message:
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
