@@ -56,11 +56,12 @@ class Tab(persistent.Persistent):
     def set_timezone(self, tz):
         self.tz = tz
 
-    def remove(self, id, user_id, date, amount, reason=None):
-        return self.add(id, user_id, date, -1 * amount, reason)
+    def remove(self, message_id, user_id, date, amount, reason=None):
+        return self.add(message_id, user_id, date, -1 * amount, reason)
 
     def add(self, message_id, user_id, date, amount, reason=''):
-        for v in self.entries:
+        position = 0
+        for position, v in enumerate(self.entries):
             if v.message_id == message_id:
                 # Already in list, ignore
                 logger.debug('not adding {}, already in list'.format(amount))
@@ -70,13 +71,8 @@ class Tab(persistent.Persistent):
 
         date = arrow.get(date).to(self.tz)
         entry = Entry(message_id, user_id, amount, date, reason)
-        for position, v in enumerate(self.entries):
-            if v.id < entry.id:
-                logger.debug('adding {}'.format(amount))
-                self.entries.insert(position, entry)
-                break
-        else:
-            self.entries.append(entry)
+        logger.debug('adding {}'.format(amount))
+        self.entries.insert(position, entry)
 
         self.grandtotal += amount
         self.users[user_id] += amount
@@ -106,7 +102,7 @@ class DB(object):
 
     def get_or_create_user(self, user_id):
         if user_id in self.root.users:
-            return self.root.users[id], False
+            return self.root.users[user_id], False
 
         user = User(user_id)
         self.root.users[user_id] = user
@@ -139,8 +135,8 @@ class BotCommand(object):
     def match(cls, message):
         return False
 
-    def get_tab(self, id):
-        return self._db.get_or_create_tab(id)[0]
+    def get_tab(self, tab_id):
+        return self._db.get_or_create_tab(tab_id)[0]
 
 
 class TotalCommand(BotCommand):
