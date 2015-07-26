@@ -2,4 +2,4 @@ python-telegram-bot==1.9
 zodb
 transaction
 btrees
--e https://github.com/pegler/pytzwhere/archive/master.tar.gz#egg=pytzwhere
+https://github.com/pegler/pytzwhere/archive/master.tar.gz#egg=pytzwhere
