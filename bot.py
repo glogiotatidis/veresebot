@@ -17,6 +17,16 @@ import config
 from log import logger
 
 
+class User(persistent.Persistent):
+    def __init__(self, user_id):
+        self.id = user_id
+
+    def update(self, first_name, last_name, username):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.username = username
+
+
 class Entry(object):
     def __init__(self, id, user_id, amount, date, reason=None):
         if not reason:
@@ -29,8 +39,8 @@ class Entry(object):
 
 
 class Tab(persistent.Persistent):
-    def __init__(self, user_id):
-        self.user_id = user_id
+    def __init__(self, chat_id):
+        self.chat_id = chat_id
         self.grandtotal = 0
         self.entries = []
         self.tz = 'UTC'
@@ -82,14 +92,25 @@ class DB(object):
         self.root = self._connection.root
         if not hasattr(self.root, 'tabs'):
             self.root.tabs = BTrees.OOBTree.BTree()
+        if not hasattr(self.root, 'users'):
+            self.root.users = BTrees.OOBTree.BTree()
 
-    def get_or_create_tab(self, id):
-        if id in self.root.tabs:
-            return self.root.tabs[id], False
+    def get_or_create_tab(self, tab_id):
+        if tab_id in self.root.tabs:
+            return self.root.tabs[tab_id], False
 
-        tab = Tab(id)
-        self.root.tabs[id] = tab
+        tab = Tab(tab_id)
+        self.root.tabs[tab_id] = tab
         return tab, True
+
+    def get_or_create_user(self, user_id):
+        if user_id in self.root.users:
+            return self.root.users[id], False
+
+        user = User(user_id)
+        self.root.users[user_id] = user
+        logger.debug('Created user {}'.format(user_id))
+        return user, True
 
     def commit(self):
         transaction.commit()
@@ -226,7 +247,8 @@ class RemoveCommand(AddCommand):
         except CommandError:
             self._say(message, "Nope, I don't get ya")
             return
-        self.remove(message.chat.id, message.from_user.id, message.message_id, message.date, amount, reason)
+        self.remove(message.chat.id, message.from_user.id, message.message_id,
+                    message.date, amount, reason)
         self._say(message, 'Removed {}'.format(amount))
 
 
@@ -269,7 +291,8 @@ class LastCommand(BotCommand):
         howmany = int(match.groupdict(5)['howmany'])
         tab = self._db.get_or_create_tab(message.chat.id)[0]
         last_entries = u'\n'.join([
-            u'{}: {} for {}'.format(entry.amount, entry.date.humanize(), entry.reason) for entry in tab.entries[:howmany]])
+            u'{}: {} for {}'.format(entry.amount, entry.date.humanize(), entry.reason)
+            for entry in tab.entries[:howmany]])
         if not last_entries:
             last_entries = 'No entries!'
         self._say(message, last_entries)
@@ -284,6 +307,7 @@ class PingCommand(BotCommand):
     def default(self, message):
         self._say(message, 'Pong!')
 
+
 class SplitCommand(BotCommand):
     @classmethod
     def match(cls, message):
@@ -292,10 +316,13 @@ class SplitCommand(BotCommand):
 
     def default(self, message):
         tab = self.get_tab(message.chat.id)
+        if not tab.users:
+            return
         per_person = tab.grandtotal / len(tab.users)
         text = ''
-        for user, amount in tab.users.items():
-            text += '{}: {}\n'.format(user, per_person - amount)
+        for user_id, amount in tab.users.items():
+            user = self._db.root.users[user_id]
+            text += '{}: {}\n'.format(user.first_name, per_person - amount)
         self._say(message, text)
 
 
@@ -361,12 +388,13 @@ class VereseBot(object):
             self.process_message(update.message)
             self.db.root.last_update = update.update_id
             self.db.commit()
-            print [tab[1].grandtotal for tab in self.db.root.tabs.items()]
 
     def process_message(self, message):
-        if isinstance(message.chat, telegram.groupchat.GroupChat):
-            # Ignore group chats for the time being
-            return
+        # Register user
+        user = self.db.get_or_create_user(message.from_user.id)[0]
+        user.update(message.from_user.first_name,
+                    message.from_user.last_name,
+                    message.from_user.username)
 
         if message.reply_to_message:
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
