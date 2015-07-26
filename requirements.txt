@@ -3,3 +3,4 @@ zodb
 transaction
 btrees
 https://github.com/pegler/pytzwhere/archive/master.tar.gz#egg=pytzwhere
+arrow
