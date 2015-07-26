@@ -279,6 +279,30 @@ class PingCommand(BotCommand):
     def default(self, message):
         self._say(message, 'Pong!')
 
+class ExportCommand(BotCommand):
+    @classmethod
+    def match(cls, message):
+        if hasattr(message, 'text') and message.text.startswith('/export'):
+            return True
+
+    def default(self, message):
+        import cStringIO
+        import csv
+        import os
+        from tempfile import NamedTemporaryFile
+
+        tab = self.get_tab(message.chat.id)
+        csvfile = NamedTemporaryFile(suffix='.csv', prefix='verese-export-', delete=False)
+
+        spamwriter = csv.writer(csvfile, delimiter=',')
+        spamwriter.writerow(['Amount', 'Date', 'Reason'])
+        for entry in tab.entries:
+            spamwriter.writerow([entry.amount, entry.date, entry.reason])
+        csvfile.close()
+
+        self.bot._bot.sendDocument(chat_id=message.chat.id, document=open(csvfile.name, 'rb'))
+        os.unlink(csvfile.name)
+
 
 class VereseBot(object):
     COMMANDS = [StartCommand, AddCommand, RemoveCommand, TotalCommand, ClearCommand, LastCommand, PingCommand]
