@@ -3,6 +3,7 @@
 
 import re
 from time import sleep
+from collections import defaultdict
 
 import arrow
 import telegram
@@ -33,10 +34,12 @@ class Tab(persistent.Persistent):
         self.grandtotal = 0
         self.entries = []
         self.tz = 'UTC'
+        self.users = defaultdict(int)
 
     def clear(self):
         self.entries = []
         self.grandtotal = 0
+        self.users = []
         self._p_changed__ = True
 
     def set_timezone(self, tz):
@@ -65,6 +68,8 @@ class Tab(persistent.Persistent):
             self.entries.append(entry)
 
         self.grandtotal += amount
+        self.users[user_id] += amount
+
         self._p_changed__ = True
 
 
@@ -279,6 +284,21 @@ class PingCommand(BotCommand):
     def default(self, message):
         self._say(message, 'Pong!')
 
+class SplitCommand(BotCommand):
+    @classmethod
+    def match(cls, message):
+        if hasattr(message, 'text') and message.text.startswith('/split'):
+            return True
+
+    def default(self, message):
+        tab = self.get_tab(message.chat.id)
+        per_person = tab.grandtotal / len(tab.users)
+        text = ''
+        for user, amount in tab.users.items():
+            text += '{}: {}\n'.format(user, per_person - amount)
+        self._say(message, text)
+
+
 class ExportCommand(BotCommand):
     @classmethod
     def match(cls, message):
@@ -305,7 +325,9 @@ class ExportCommand(BotCommand):
 
 
 class VereseBot(object):
-    COMMANDS = [StartCommand, AddCommand, RemoveCommand, TotalCommand, ClearCommand, LastCommand, PingCommand]
+    COMMANDS = [StartCommand, AddCommand, RemoveCommand, TotalCommand,
+                ClearCommand, LastCommand, PingCommand, ExportCommand,
+                SplitCommand]
 
     def __init__(self):
         self.db = DB()
