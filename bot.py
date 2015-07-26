@@ -270,8 +270,18 @@ class LastCommand(BotCommand):
         self._say(message, last_entries)
 
 
+class PingCommand(BotCommand):
+    @classmethod
+    def match(cls, message):
+        if hasattr(message, 'text') and message.text.startswith('/ping'):
+            return True
+
+    def default(self, message):
+        self._say(message, 'Pong!')
+
+
 class VereseBot(object):
-    COMMANDS = [StartCommand, AddCommand, RemoveCommand, TotalCommand, ClearCommand, LastCommand]
+    COMMANDS = [StartCommand, AddCommand, RemoveCommand, TotalCommand, ClearCommand, LastCommand, PingCommand]
 
     def __init__(self):
         self.db = DB()
