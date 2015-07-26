@@ -385,8 +385,6 @@ class VereseBot(object):
 
         # Register tab
         tab, created = self.db.get_or_create_tab(message.chat.id)
-        if created:
-            self.say(message, 'Welcome mate, I just created a new tab for you.')
 
         if message.reply_to_message:
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
