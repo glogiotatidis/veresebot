@@ -352,9 +352,10 @@ class VereseBot(object):
     def say(self, reply_to_message, text, reply_markup=None):
         # The telegram library doesn't play well with unicode, oh well.
         text = text.encode('utf-8') if isinstance(text, unicode) else text
+        reply_to_message_id=reply_to_message.message_id if reply_markup else None
         return self._bot.sendMessage(chat_id=reply_to_message.chat.id,
                                      text=text,
-                                     reply_to_message_id=reply_to_message.message_id,
+                                     reply_to_message_id=reply_to_message_id,
                                      reply_markup=reply_markup)
 
     def get_updates(self):
