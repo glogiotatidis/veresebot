@@ -47,7 +47,7 @@ class Tab(persistent.Persistent):
     def clear(self):
         self.entries = []
         self.grandtotal = 0
-        self.users = []
+        self.users = defaultdict(int)
         self._p_changed__ = True
 
     def set_timezone(self, tz):
