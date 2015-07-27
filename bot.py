@@ -341,6 +341,7 @@ class VereseBot(object):
                 SplitCommand]
 
     def __init__(self):
+        self._stay_awake = 30
         self.db = DB()
         # self.tz = tzwhere.tzwhere()
 
@@ -374,6 +375,17 @@ class VereseBot(object):
             self.process_message(update.message)
             self.db.root.last_update = update.update_id
             self.db.commit()
+
+        if updates:
+            self._stay_awake += 30
+        else:
+            if not self._stay_awake:
+                logger.debug('Entering sleep mode')
+                sleep(4)
+
+        self._stay_awake = self._stay_awake - 1 if self._stay_awake > 0 else 0
+        sleep(0.6)
+        bot.process_messages()
 
     def process_message(self, message):
         # Register user
@@ -413,10 +425,7 @@ class VereseBot(object):
 
 if __name__ == "__main__":
     bot = VereseBot()
-
     try:
-        while True:
-            bot.process_messages()
-            sleep(1)
+        bot.process_messages()
     except KeyboardInterrupt:
         bot.db.close()
