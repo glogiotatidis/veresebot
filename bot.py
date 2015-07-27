@@ -11,7 +11,7 @@ import persistent
 import ZODB, ZODB.FileStorage
 import BTrees.OOBTree
 import transaction
-# from tzwhere import tzwhere
+from tzwhere import tzwhere
 
 import config
 from log import logger
@@ -309,6 +309,24 @@ class SplitCommand(BotCommand):
         self._say(message, text)
 
 
+class SetTimezoneCommand(BotCommand):
+    @classmethod
+    def match(cls, message):
+        if message.text and message.text.startswith('/set_timezone'):
+            return True
+
+    def default(self, message):
+        msg = self._say(message, "Send me your location and I'll do the rest",
+                        telegram.ForceReply(selective=True))
+        self.queue(message.chat.id, msg.message_id, partial(self.process_location))
+
+    def process_location(self, message):
+        tab, created = self._db.get_or_create_tab(message.chat.id)
+        tz = self.bot.tz.tzNameAt(message.location.latitude, message.location.longitude)
+        tab.set_timezone(tz)
+        self._say(message, 'Timezone set to {}'.format(tz))
+
+
 class ExportCommand(BotCommand):
     @classmethod
     def match(cls, message):
@@ -339,12 +357,12 @@ class ExportCommand(BotCommand):
 class VereseBot(object):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
-                SplitCommand]
+                SplitCommand, SetTimezoneCommand]
 
     def __init__(self):
         self._stay_awake = 30
         self.db = DB()
-        # self.tz = tzwhere.tzwhere()
+        self.tz = tzwhere.tzwhere()
 
         # Connect to Telegram
         self._bot = telegram.Bot(token=config.token)
@@ -398,6 +416,7 @@ class VereseBot(object):
         # Register tab
         tab, created = self.db.get_or_create_tab(message.chat.id)
 
+
         if message.reply_to_message:
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
             if key in self.queue:
@@ -416,11 +435,6 @@ class VereseBot(object):
         logger.debug('Calling process_{}'.format(cmd))
         cmd(bot=self)(message)
 
-    # def process_location(self, message, content):
-    #     tab, created = self.db.get_or_create_tab(message.chat.id)
-    #     tz = self.tz.tzNameAt(content.latitude, content.longitude)
-    #     tab.set_timezone(tz)
-    #     self.say(message, 'Timezone {}'.format(tz))
 
 
 
