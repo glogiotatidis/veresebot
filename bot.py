@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-from time import sleep
 from collections import defaultdict
+from functools import partial
+from time import sleep
 
 import arrow
 import telegram
@@ -155,7 +156,7 @@ class TotalCommand(BotCommand):
     def default(self, message):
         text = '\n'.join(['({}) for {}'.format(i+1, cmd['text']) for i, cmd in enumerate(self.commands)])
         msg = self._say(message, text, reply_markup=telegram.ForceReply(selective=True))
-        self.queue(message.chat.id, msg.message_id, {'call': self.process_which_total})
+        self.queue(message.chat.id, msg.message_id, partial(self.process_which_total))
 
     def process_which_total(self, message):
         if not message.text:
@@ -208,7 +209,7 @@ class AddCommand(BotCommand):
             self.process_howmuch(message)
         else:
             msg = self._say(message, 'How much?', reply_markup=telegram.ForceReply(selective=True))
-            self.queue(message.chat.id, msg.message_id, {'call': self.process_howmuch})
+            self.queue(message.chat.id, msg.message_id, partial(self.process_howmuch))
 
     def process_howmuch(self, message):
         try:
@@ -401,8 +402,8 @@ class VereseBot(object):
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
             if key in self.queue:
                 k = self.queue.pop(key)
-                logger.debug('Calling queued {}'.format(k['call']))
-                k['call'](message, **k.get('parameters', {}))
+                logger.debug('Calling queued {}'.format(k))
+                k(message)
                 return
 
         for cmd in self.COMMANDS:
