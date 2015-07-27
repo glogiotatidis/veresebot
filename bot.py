@@ -382,11 +382,10 @@ class VereseBot(object):
         else:
             if not self._stay_awake:
                 logger.debug('Entering sleep mode')
-                sleep(4)
+                return 4
 
         self._stay_awake = self._stay_awake - 1 if self._stay_awake > 0 else 0
-        sleep(0.6)
-        bot.process_messages()
+        return 1
 
     def process_message(self, message):
         # Register user
@@ -427,6 +426,8 @@ class VereseBot(object):
 if __name__ == "__main__":
     bot = VereseBot()
     try:
-        bot.process_messages()
+        while True:
+            timeout = bot.process_messages()
+            sleep(timeout)
     except KeyboardInterrupt:
         bot.db.close()
