@@ -139,14 +139,14 @@ class BotCommand(object):
 class TotalCommand(BotCommand):
     def __init__(self, *args, **kwargs):
         self.commands = [
-             {'text': 'Day Total',
-              'function': self.get_day_total},
-             {'text': 'Week Total',
-              'function': self.get_week_total},
-             {'text': 'Month Total',
-              'function': self.get_month_total},
-             {'text': 'Year Total',
-              'function': self.get_year_total},
+             # {'text': 'Day Total',
+             #  'function': self.get_day_total},
+             # {'text': 'Week Total',
+             #  'function': self.get_week_total},
+             # {'text': 'Month Total',
+             #  'function': self.get_month_total},
+             # {'text': 'Year Total',
+             #  'function': self.get_year_total},
              {'text': 'Grand Total',
               'function': self.get_grand_total}
         ]
