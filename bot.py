@@ -63,7 +63,7 @@ class Tab(persistent.Persistent):
                 # Already in list, ignore
                 logger.debug('not adding {}, already in list'.format(amount))
                 return
-            elif v.id < message_id:
+            elif v.message_id < message_id:
                 break
 
         date = arrow.get(date).to(self.tz)
