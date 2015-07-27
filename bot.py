@@ -324,7 +324,7 @@ class ExportCommand(BotCommand):
         csvfile = NamedTemporaryFile(suffix='.csv', prefix='verese-export-', delete=False)
 
         spamwriter = csv.writer(csvfile, delimiter=',')
-        spamwriter.writerow(['Perons', 'Amount', 'Date', 'Reason'])
+        spamwriter.writerow(['Person', 'Amount', 'Date', 'Reason'])
         for entry in tab.entries:
             user = self._db.root.users[entry.user_id]
             user_repr = '{} {}'.format(user.first_name, user.last_name)
