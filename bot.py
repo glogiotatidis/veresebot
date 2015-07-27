@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import re
 from time import sleep
 from collections import defaultdict
@@ -30,12 +29,10 @@ class User(persistent.Persistent):
 
 class Entry(object):
     def __init__(self, message_id, user_id, amount, date, reason=None):
-        if not reason:
-            reason = 'stuff'
         self.message_id = message_id
         self.user_id = user_id
         self.amount = amount
-        self.reason = '' if not reason else reason
+        self.reason = 'stuff' if not reason else reason
         self.date = date
 
 
@@ -220,7 +217,7 @@ class AddCommand(BotCommand):
             self._say(message, "Nope, I don't get ya")
             return
         self.add(message.chat.id, message.from_user.id, message.message_id, message.date, amount, reason)
-        self._say(message, '{} Added {} '.format(telegram.Emoji.THUMBS_UP_SIGN, amount))
+        self._say(message, telegram.Emoji.THUMBS_UP_SIGN)
 
     @classmethod
     def match(cls, message):
@@ -307,7 +304,7 @@ class SplitCommand(BotCommand):
         text = ''
         for user_id, amount in tab.users.items():
             user = self._db.root.users[user_id]
-            text += '{}: {}\n'.format(user.first_name, per_person - amount)
+            text += u'{}: {}\n'.format(user.first_name, per_person - amount)
         self._say(message, text)
 
 
@@ -352,6 +349,8 @@ class VereseBot(object):
         self.queue = {}
 
     def say(self, reply_to_message, text, reply_markup=None):
+        # The telegram library doesn't play well with unicode, oh well.
+        text = text.encode('utf-8') if isinstance(text, unicode) else text
         return self._bot.sendMessage(chat_id=reply_to_message.chat.id,
                                      text=text,
                                      reply_to_message_id=reply_to_message.message_id,
