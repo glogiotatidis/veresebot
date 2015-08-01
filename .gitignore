@@ -1,2 +1,3 @@
 db.*
 *.py[co]
+local_config.py
