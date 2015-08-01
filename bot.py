@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from time import sleep
 
+import click
 import telegram
 
 import config
@@ -102,11 +103,34 @@ class VereseBot(object):
         cmd(bot=self)(message)
 
 
-if __name__ == "__main__":
+
+@click.command()
+@click.option('--webserver/--polling', default=True)
+def main(webserver):
+    """Verese Telegram Bot."""
     bot = VereseBot()
-    try:
-        while True:
-            timeout = bot.process_messages()
-            sleep(timeout)
-    except KeyboardInterrupt:
-        bot.db.close()
+
+    if webserver:
+        from bottle import route, run
+
+        @route('/')
+        def home():
+            bot.process_messages()
+            return 'OK'
+
+        try:
+            run(host='0.0.0.0', port=config.port, reloader=False)
+        finally:
+            bot.db.close()
+
+    else:
+        try:
+            while True:
+                timeout = bot.process_messages()
+                sleep(timeout)
+        finally:
+            bot.db.close()
+
+
+if __name__ == "__main__":
+    main()

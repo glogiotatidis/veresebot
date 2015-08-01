@@ -4,3 +4,4 @@ transaction==1.4.4
 BTrees==4.1.4
 tzwhere==2.2.
 arrow==0.6.0
+click
