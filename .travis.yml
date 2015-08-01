@@ -4,6 +4,8 @@ install:
   - pip install -r requirements-dev.txt
 python:
   - "2.7"
+before_script:
+  - flake8
 script:
   py.test --cov .
 after_success:
