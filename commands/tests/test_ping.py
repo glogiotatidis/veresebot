@@ -8,10 +8,12 @@ def test_match():
     message.text = '/ping'
     assert PingCommand.match(message)
 
+
 def test_no_text():
     message = Mock()
     message.text = None
     assert not PingCommand.match(message)
+
 
 def test_other_text():
     message = Mock()

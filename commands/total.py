@@ -7,18 +7,8 @@ from . import BotCommand
 
 class TotalCommand(BotCommand):
     def __init__(self, *args, **kwargs):
-        self.commands = [
-             # {'text': 'Day Total',
-             #  'function': self.get_day_total},
-             # {'text': 'Week Total',
-             #  'function': self.get_week_total},
-             # {'text': 'Month Total',
-             #  'function': self.get_month_total},
-             # {'text': 'Year Total',
-             #  'function': self.get_year_total},
-             {'text': 'Grand Total',
-              'function': self.get_grand_total}
-        ]
+        self.commands = [{'text': 'Grand Total',
+                          'function': self.get_grand_total}]
         super(TotalCommand, self).__init__(*args, **kwargs)
 
     def default(self, message):
@@ -35,18 +25,6 @@ class TotalCommand(BotCommand):
         for i, command in enumerate(self.commands):
             if message.text == str(i+1):
                 command['function'](message)
-
-    def get_day_total(self, message):
-        pass
-
-    def get_week_total(self, message):
-        pass
-
-    def get_month_total(self, message):
-        pass
-
-    def get_year_total(self, message):
-        pass
 
     def get_grand_total(self, message):
         tab = self.get_tab(message.chat.id)

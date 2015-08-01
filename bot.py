@@ -25,7 +25,6 @@ from commands.split import SplitCommand
 from commands.total import TotalCommand
 
 
-
 class User(persistent.Persistent):
     def __init__(self, user_id):
         self.id = user_id
