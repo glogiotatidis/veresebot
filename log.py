@@ -9,8 +9,8 @@ logger.setLevel(logging.DEBUG)
 
 
 # create formatter
-formatter = logging.Formatter('[%(asctime)s][%(filename)s:%(lineno)s - %(levelname)s - %(funcName)s] %(message)s')
-
+formatter = logging.Formatter(
+    '[%(asctime)s][%(filename)s:%(lineno)s - %(levelname)s - %(funcName)s] %(message)s')
 
 
 # create console handler and set level to debug

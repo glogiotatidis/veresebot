@@ -1,20 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re
 from collections import defaultdict
-from functools import partial
 from time import sleep
 
 import arrow
 import telegram
 import persistent
-import ZODB, ZODB.FileStorage
+import ZODB
+import ZODB.FileStorage
 import BTrees.OOBTree
 import transaction
-from tzwhere import tzwhere
 
 import config
 from log import logger
+
+from commands.add import AddCommand
+from commands.clear import ClearCommand
+from commands.export import ExportCommand
+from commands.last import LastCommand
+from commands.ping import PingCommand
+from commands.remove import RemoveCommand
+from commands.settimezone import SetTimezoneCommand
+from commands.split import SplitCommand
+from commands.total import TotalCommand
+
 
 
 class User(persistent.Persistent):
@@ -113,248 +122,6 @@ class DB(object):
     def close(self):
         self._db.close()
 
-class CommandError(Exception):
-    pass
-
-
-class BotCommand(object):
-    def __init__(self, bot, *args, **kwargs):
-        self.bot = bot
-        self._db = self.bot.db
-        self._say = self.bot.say
-
-    def __call__(self, message, *args, **kwargs):
-        return self.default(message, *args, **kwargs)
-
-    def queue(self, chat_id, msg_id, next_cmd):
-        self.bot.queue['{}_{}'.format(chat_id, msg_id)] = next_cmd
-
-    @classmethod
-    def match(cls, message):
-        return False
-
-    def get_tab(self, tab_id):
-        return self._db.get_or_create_tab(tab_id)[0]
-
-
-class TotalCommand(BotCommand):
-    def __init__(self, *args, **kwargs):
-        self.commands = [
-             # {'text': 'Day Total',
-             #  'function': self.get_day_total},
-             # {'text': 'Week Total',
-             #  'function': self.get_week_total},
-             # {'text': 'Month Total',
-             #  'function': self.get_month_total},
-             # {'text': 'Year Total',
-             #  'function': self.get_year_total},
-             {'text': 'Grand Total',
-              'function': self.get_grand_total}
-        ]
-        super(TotalCommand, self).__init__(*args, **kwargs)
-
-    def default(self, message):
-        text = '\n'.join(['({}) for {}'.format(i+1, cmd['text']) for i, cmd in enumerate(self.commands)])
-        msg = self._say(message, text, reply_markup=telegram.ForceReply(selective=True))
-        self.queue(message.chat.id, msg.message_id, partial(self.process_which_total))
-
-    def process_which_total(self, message):
-        if not message.text:
-            self._say(message, 'Nope')
-            return
-
-        for i, command in enumerate(self.commands):
-            if message.text == str(i+1):
-                command['function'](message)
-
-    def get_day_total(self, message):
-        pass
-
-    def get_week_total(self, message):
-        pass
-
-    def get_month_total(self, message):
-        pass
-
-    def get_year_total(self, message):
-        pass
-
-    def get_grand_total(self, message):
-        tab = self.get_tab(message.chat.id)
-        self._say(message, 'Grand Total: {}'.format(tab.grandtotal))
-
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/total'):
-            return True
-
-
-class AddCommand(BotCommand):
-    def get_amount(self, content):
-        match = re.match('((/add )|(/remove ))?(?P<amount>\d+(\.\d+)?)( (?P<reason>.*))?', content)
-        if not match:
-            raise CommandError()
-
-        amount = float(match.groupdict()['amount'])
-        reason = match.groupdict()['reason']
-        return amount, reason
-
-    def add(self, tab_id, user_id, message_id, date, amount, reason=''):
-        tab = self.get_tab(tab_id)
-        tab.add(message_id, user_id, date, amount, reason)
-
-    def default(self, message):
-        content = message.text.split(' ', 1)[1] if len(message.text.split(' ', 1)) == 2 else ''
-        if content:
-            self.process_howmuch(message)
-        else:
-            msg = self._say(message, 'How much?', reply_markup=telegram.ForceReply(selective=True))
-            self.queue(message.chat.id, msg.message_id, partial(self.process_howmuch))
-
-    def process_howmuch(self, message):
-        try:
-            amount, reason = self.get_amount(message.text)
-        except CommandError:
-            self._say(message, "Nope, I don't get ya")
-            return
-        self.add(message.chat.id, message.from_user.id, message.message_id, message.date, amount, reason)
-        self._say(message, telegram.Emoji.THUMBS_UP_SIGN)
-
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/add'):
-            return True
-
-
-class RemoveCommand(AddCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/remove'):
-            return True
-
-    def remove(self, tab_id, user_id, message_id, date, amount, reason=''):
-        tab = self.get_tab(tab_id)
-        tab.remove(message_id, user_id, date, amount, reason)
-
-    def process_howmuch(self, message):
-        try:
-            amount, reason = self.get_amount(message.text)
-        except CommandError:
-            self._say(message, "Nope, I don't get ya")
-            return
-        self.remove(message.chat.id, message.from_user.id, message.message_id,
-                    message.date, amount, reason)
-        self._say(message, 'Removed {}'.format(amount))
-
-
-class ClearCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/clear'):
-            return True
-
-    def default(self, message):
-        if message.text and message.text == '/clear do as I say':
-            tab = self._db.get_or_create_tab(message.chat.id)[0]
-            tab.clear()
-            self._say(message, 'Tab cleared')
-
-        else:
-            self._say(message, "To really clear say '/clear do as I say'")
-
-
-class LastCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/last'):
-            return True
-
-    def default(self, message):
-        match = re.match('(/last)( (?P<howmany>\d+))?', message.text)
-        howmany = int(match.groupdict(5)['howmany'])
-        tab = self._db.get_or_create_tab(message.chat.id)[0]
-        last_entries = u'\n'.join([
-            u'{}: {} for {}'.format(entry.amount, entry.date.humanize(), entry.reason)
-            for entry in tab.entries[:howmany]])
-        if not last_entries:
-            last_entries = 'No entries!'
-        self._say(message, last_entries)
-
-
-class PingCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/ping'):
-            return True
-
-    def default(self, message):
-        self._say(message, 'Pong!')
-
-
-class SplitCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/split'):
-            return True
-
-    def default(self, message):
-        tab = self.get_tab(message.chat.id)
-        if not tab.users:
-            return
-        per_person = tab.grandtotal / len(tab.users)
-        text = ''
-        for user_id, amount in tab.users.items():
-            user = self._db.root.users[user_id]
-            text += u'{}: {}\n'.format(user.first_name, per_person - amount)
-        self._say(message, text)
-
-
-class SetTimezoneCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/set_timezone'):
-            return True
-
-    def default(self, message):
-        msg = self._say(message, "Send me your location and I'll do the rest",
-                        telegram.ForceReply(selective=True))
-        self.queue(message.chat.id, msg.message_id, partial(self.process_location))
-
-    def process_location(self, message):
-        tab, created = self._db.get_or_create_tab(message.chat.id)
-        tz = self.bot.tz.tzNameAt(message.location.latitude, message.location.longitude)
-        tab.set_timezone(tz)
-        self._say(message, 'Timezone set to {}'.format(tz))
-
-
-class ExportCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/export'):
-            return True
-
-    def default(self, message):
-        import cStringIO
-        import csv
-        import os
-        import codecs
-        from tempfile import mkstemp
-
-        tab = self.get_tab(message.chat.id)
-
-        csvhandle, csvfilename = mkstemp(suffix='.csv', prefix='verese-export-')
-        with os.fdopen(csvhandle, 'wb') as csvfile:
-            csvwriter = csv.writer(csvfile, delimiter=',')
-            csvwriter.writerow(['Person', 'Amount', 'Date', 'Reason'])
-            for entry in tab.entries:
-                user = self._db.root.users[entry.user_id]
-                user_repr = '{} {}'.format(user.first_name, user.last_name).strip()
-                row = [u'{}'.format(x).encode('utf-8') for x in [user_repr, entry.amount, entry.date, entry.reason]]
-                csvwriter.writerow(row)
-
-        self.bot._bot.sendDocument(chat_id=message.chat.id, document=open(csvfilename, 'rb'))
-        os.unlink(csvfilename)
-
 
 class VereseBot(object):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
@@ -364,7 +131,6 @@ class VereseBot(object):
     def __init__(self):
         self._stay_awake = 30
         self.db = DB()
-        self.tz = tzwhere.tzwhere()
 
         # Connect to Telegram
         self._bot = telegram.Bot(token=config.token)
@@ -373,7 +139,7 @@ class VereseBot(object):
     def say(self, reply_to_message, text, reply_markup=None):
         # The telegram library doesn't play well with unicode, oh well.
         text = text.encode('utf-8') if isinstance(text, unicode) else text
-        reply_to_message_id=reply_to_message.message_id if reply_markup else None
+        reply_to_message_id = reply_to_message.message_id if reply_markup else None
         return self._bot.sendMessage(chat_id=reply_to_message.chat.id,
                                      text=text,
                                      reply_to_message_id=reply_to_message_id,
@@ -418,7 +184,6 @@ class VereseBot(object):
         # Register tab
         tab, created = self.db.get_or_create_tab(message.chat.id)
 
-
         if message.reply_to_message:
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
             if key in self.queue:
@@ -436,8 +201,6 @@ class VereseBot(object):
 
         logger.debug('Calling process_{}'.format(cmd))
         cmd(bot=self)(message)
-
-
 
 
 if __name__ == "__main__":
