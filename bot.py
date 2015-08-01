@@ -65,6 +65,9 @@ class Tab(persistent.Persistent):
     def remove(self, message_id, user_id, date, amount, reason=None):
         return self.add(message_id, user_id, date, -1 * amount, reason)
 
+    def register_user(self, user_id):
+        self.users[user_id]
+
     def add(self, message_id, user_id, date, amount, reason=''):
         position = 0
         for position, v in enumerate(self.entries):
@@ -182,6 +185,9 @@ class VereseBot(object):
 
         # Register tab
         tab, created = self.db.get_or_create_tab(message.chat.id)
+
+        # Register user in tab
+        tab.register_user(user.id)
 
         if message.reply_to_message:
             key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
