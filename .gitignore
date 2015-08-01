@@ -1,4 +1,4 @@
-db.fs
+db.fs*
 *.py[co]
 local_config.py
 .coverage
