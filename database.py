@@ -86,6 +86,8 @@ class DB(object):
         self.root = self._connection.root
         if not hasattr(self.root, '_db_version'):
             self.root._db_version = self.DB_VERSION
+        if not hasattr(self.root, 'last_update'):
+            self.root.last_update = 0
         if not hasattr(self.root, 'tabs'):
             self.root.tabs = BTrees.OOBTree.BTree()
         if not hasattr(self.root, 'users'):

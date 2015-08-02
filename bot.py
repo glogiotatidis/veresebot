@@ -44,23 +44,13 @@ class VereseBot(object):
 
     def get_updates(self):
         logger.debug('')
-        try:
-            last_update = self.db.root.last_update
-        except AttributeError:
-            last_update = 0
-
+        last_update = self.db.root.last_update
         updates = self._bot.getUpdates(offset=last_update)
-        updates = [u for u in updates if u.update_id > last_update]
         return updates
 
-    def process_messages(self):
+    def poll(self):
         updates = self.get_updates()
-
-        for update in updates:
-            self.process_message(update.message)
-            self.db.root.last_update = update.update_id
-            self.db.commit()
-
+        self.process_updates(updates)
         if updates:
             self._stay_awake += 30
         else:
@@ -70,6 +60,13 @@ class VereseBot(object):
 
         self._stay_awake = self._stay_awake - 1 if self._stay_awake > 0 else 0
         return 1
+
+    def process_updates(self, updates):
+        last_update = self.db.root.last_update
+        for update in filter(lambda x: x.update_id > last_update, updates):
+            self.process_message(update.message)
+            self.db.root.last_update = update.update_id
+            self.db.commit()
 
     def process_message(self, message):
         # Register user
@@ -110,11 +107,20 @@ def main(webserver):
     bot = VereseBot()
 
     if webserver:
-        from bottle import route, run
+        import json
+        from bottle import request, route, run
 
-        @route('/')
+        if not config.webhook:
+            print 'Set webhook'
+            sys.exit(-1)
+
+        bot._bot.setWebhook(config.webhook)
+
+        @route('/', method='POST')
         def home():
-            bot.process_messages()
+            data = json.load(request.body)
+            update = telegram.Update.de_json(data)
+            bot.process_updates([update])
             return 'OK'
 
         try:
@@ -125,7 +131,7 @@ def main(webserver):
     else:
         try:
             while True:
-                timeout = bot.process_messages()
+                timeout = bot.poll()
                 sleep(timeout)
         finally:
             bot.db.close()
