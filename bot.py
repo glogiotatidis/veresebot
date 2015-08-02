@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 from time import sleep
 
 import click
@@ -110,7 +111,7 @@ def main(webserver):
         import json
         from bottle import request, route, run
 
-        if not config.webhook:
+        if not getattr(config, 'webhook', False):
             print 'Set webhook'
             sys.exit(-1)
 
