@@ -102,6 +102,10 @@ class DB(object):
             self.root.tabs = BTrees.OOBTree.BTree()
         if not hasattr(self.root, 'users'):
             self.root.users = BTrees.OOBTree.BTree()
+        if not hasattr(self.root, 'stats'):
+            self.root.stats = {
+                'number_of_messages': 0
+                }
 
     def get_or_create_tab(self, tab_id):
         if tab_id in self.root.tabs:

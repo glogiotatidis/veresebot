@@ -74,6 +74,9 @@ class VereseBot(object):
             self.db.commit()
 
     def process_message(self, message):
+        # Update stats
+        self.db.root.stats['number_of_messages'] += 1
+
         # Register user
         user = self.db.get_or_create_user(message.from_user.id)[0]
         user.update(message.from_user.first_name,
