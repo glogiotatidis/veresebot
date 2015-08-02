@@ -34,6 +34,10 @@ class VereseBot(object):
         self._bot = telegram.Bot(token=config.token)
         self.queue = {}
 
+    def set_bot_name(self):
+        msg = self._bot.getMe()
+        self.bot_name = msg.name
+
     def say(self, reply_to_message, text, reply_markup=None):
         # The telegram library doesn't play well with unicode, oh well.
         text = text.encode('utf-8') if isinstance(text, unicode) else text
