@@ -6,7 +6,7 @@ import click
 import telegram
 
 import config
-from database import DB
+from database import *  # noqa
 from log import logger
 
 from commands.add import AddCommand
@@ -101,7 +101,6 @@ class VereseBot(object):
 
         logger.debug('Calling process_{}'.format(cmd))
         cmd(bot=self)(message)
-
 
 
 @click.command()
