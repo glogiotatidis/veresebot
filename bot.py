@@ -86,13 +86,14 @@ class VereseBot(object):
         # Register user in tab
         tab.register_user(user.id)
 
-        if message.reply_to_message:
-            key = '{}_{}'.format(message.chat.id, message.reply_to_message.message_id)
-            if key in self.queue:
-                k = self.queue.pop(key)
-                logger.debug('Calling queued {}'.format(k))
-                k(message)
-                return
+        key = '{}_{}'.format(
+            message.chat.id,
+            message.message_id if not message.reply_to_message else message.reply_to_message.message_id)
+        if key in self.queue:
+            k = self.queue.pop(key)
+            logger.debug('Calling queued {}'.format(k))
+            k(message)
+            return
 
         for cmd in self.COMMANDS:
             if cmd.match(message):
