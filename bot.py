@@ -22,7 +22,7 @@ from commands.total import TotalCommand
 class VereseBot(object):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
-                SplitCommand] #SetTimezoneCommand]
+                SplitCommand, SetTimezoneCommand]
 
     def __init__(self):
         self._stay_awake = 30
