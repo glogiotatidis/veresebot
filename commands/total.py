@@ -1,3 +1,4 @@
+import random
 from functools import partial
 
 import telegram
@@ -7,14 +8,20 @@ from . import BotCommand
 
 class TotalCommand(BotCommand):
     def __init__(self, *args, **kwargs):
-        self.commands = [{'text': 'Grand Total',
-                          'function': self.get_grand_total}]
+        self.commands = [
+            {'text': "Today's Total",
+             'function': self.get_todays_total},
+            {'text': 'Grand Total',
+             'function': self.get_grand_total},
+            ]
         super(TotalCommand, self).__init__(*args, **kwargs)
 
     def default(self, message):
-        text = '\n'.join(['({}) for {}'.format(i+1, cmd['text'])
-                          for i, cmd in enumerate(self.commands)])
-        msg = self._say(message, text, reply_markup=telegram.ForceReply(selective=True))
+        keyboard = [["Today's Total", 'Grand Total']]
+        reply_markup = telegram.ReplyKeyboardMarkup(
+            keyboard, resize_keyboard=True,
+            one_time_keyboard=True, selective=True)
+        msg = self._say(message, 'Choose', reply_markup=reply_markup)
         self.queue(message.chat.id, msg.message_id, partial(self.process_which_total))
 
     def process_which_total(self, message):
@@ -22,13 +29,19 @@ class TotalCommand(BotCommand):
             self._say(message, 'Nope')
             return
 
-        for i, command in enumerate(self.commands):
-            if message.text == str(i+1):
+        for command in self.commands:
+            if message.text == command['text']:
                 command['function'](message)
+
+    def get_todays_total(self, message):
+        tab = self.get_tab(message.chat.id)
+        self._say(message, "Today's Total: {}".format(tab.get_todays_total()))
 
     def get_grand_total(self, message):
         tab = self.get_tab(message.chat.id)
-        self._say(message, 'Grand Total: {}'.format(tab.grandtotal))
+        emoji = getattr(telegram.Emoji,
+                        random.choice(['ASTONISHED_FACE', 'FACE_SCREAMING_IN_FEAR']))
+        self._say(message, 'Grand Total: {} {}'.format(tab.grandtotal, emoji))
 
     @classmethod
     def match(cls, message):
