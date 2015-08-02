@@ -1,3 +1,6 @@
+import telegram
+
+
 class CommandError(Exception):
     pass
 
@@ -11,8 +14,14 @@ class BotCommand(object):
     def __call__(self, message, *args, **kwargs):
         return self.default(message, *args, **kwargs)
 
-    def queue(self, chat_id, msg_id, next_cmd):
-        self.bot.queue['{}_{}'.format(chat_id, msg_id)] = next_cmd
+    def queue(self, message, next_cmd):
+        if isinstance(message.chat, telegram.user.User):
+            # This is a direct chat with a user, reply to message will not
+            # get populated. Instead wait for the message with id msg+1
+            msg_id = message.message_id+1
+        else:
+            msg_id = message.message_id
+        self.bot.queue['{}_{}'.format(message.chat.id, msg_id)] = next_cmd
 
     @classmethod
     def match(cls, message):

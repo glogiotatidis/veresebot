@@ -16,7 +16,7 @@ from commands.export import ExportCommand
 from commands.last import LastCommand
 from commands.ping import PingCommand
 from commands.remove import RemoveCommand
-from commands.settimezone import SetTimezoneCommand
+from commands.settings import SettingsCommand
 from commands.split import SplitCommand
 from commands.total import TotalCommand
 
@@ -24,7 +24,7 @@ from commands.total import TotalCommand
 class VereseBot(object):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
-                SplitCommand, SetTimezoneCommand]
+                SplitCommand, SettingsCommand]
 
     def __init__(self):
         self._stay_awake = 30
@@ -86,14 +86,18 @@ class VereseBot(object):
         # Register user in tab
         tab.register_user(user.id)
 
-        key = '{}_{}'.format(
-            message.chat.id,
-            message.message_id if not message.reply_to_message else message.reply_to_message.message_id)
-        if key in self.queue:
-            k = self.queue.pop(key)
-            logger.debug('Calling queued {}'.format(k))
-            k(message)
-            return
+        reply_to_id = False
+        if isinstance(message.chat, telegram.user.User):
+            reply_to_id = message.message_id
+        elif message.reply_to_message:
+            reply_to_id = message.reply_to_message.message_id
+        if reply_to_id:
+            key = '{}_{}'.format(message.chat.id, reply_to_id)
+            if key in self.queue:
+                k = self.queue.pop(key)
+                logger.debug('Calling queued {}'.format(k))
+                k(message)
+                return
 
         for cmd in self.COMMANDS:
             if cmd.match(message):

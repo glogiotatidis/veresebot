@@ -42,14 +42,14 @@ class TotalCommand(BotCommand):
     def get_todays_total(self, message):
         tab = self.get_tab(message.chat.id)
         self._say(message, "Today's Total: {}".format(tab.get_todays_total()),
-                  reply_markup = telegram.ReplyKeyboardHide())
+                  reply_markup=telegram.ReplyKeyboardHide())
 
     def get_grand_total(self, message):
         tab = self.get_tab(message.chat.id)
         emoji = getattr(telegram.Emoji,
                         random.choice(['ASTONISHED_FACE', 'FACE_SCREAMING_IN_FEAR']))
         self._say(message, 'Grand Total: {} {}'.format(tab.grandtotal, emoji),
-                  reply_markup = telegram.ReplyKeyboardHide())
+                  reply_markup=telegram.ReplyKeyboardHide())
 
     @classmethod
     def match(cls, message):
