@@ -22,13 +22,7 @@ class TotalCommand(BotCommand):
             keyboard, resize_keyboard=True,
             one_time_keyboard=True, selective=True)
         msg = self._say(message, 'Choose', reply_markup=reply_markup)
-        if isinstance(message.chat, telegram.user.User):
-            # This is a direct chat with a user, reply to message will not
-            # get populated. Instead wait for the message with id msg+1
-            msg_id = msg.message_id+1
-        else:
-            msg_id = msg.message_id
-        self.queue(message.chat.id, msg_id, partial(self.process_which_total))
+        self.queue(msg, partial(self.process_which_total))
 
     def process_which_total(self, message):
         if not message.text:

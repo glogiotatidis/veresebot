@@ -26,7 +26,7 @@ class AddCommand(BotCommand):
             self.process_howmuch(message)
         else:
             msg = self._say(message, 'How much?', reply_markup=telegram.ForceReply(selective=True))
-            self.queue(message.chat.id, msg.message_id, partial(self.process_howmuch))
+            self.queue(msg, partial(self.process_howmuch))
 
     def process_howmuch(self, message):
         try:
