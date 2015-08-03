@@ -2,10 +2,7 @@ from . import BotCommand
 
 
 class SplitCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/split'):
-            return True
+    command = '/split'
 
     def default(self, message):
         tab = self.get_tab(message.chat.id)

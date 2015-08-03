@@ -4,10 +4,7 @@ from . import BotCommand
 
 
 class LastCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/last'):
-            return True
+    command = '/last'
 
     def default(self, message):
         match = re.match('(/last)( (?P<howmany>\d+))?', message.text)

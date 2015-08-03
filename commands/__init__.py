@@ -6,6 +6,8 @@ class CommandError(Exception):
 
 
 class BotCommand(object):
+    command = None
+
     def __init__(self, bot, *args, **kwargs):
         self.bot = bot
         self._db = self.bot.db
@@ -25,6 +27,8 @@ class BotCommand(object):
 
     @classmethod
     def match(cls, message):
+        if cls.command and message.text and message.text.startswith(cls.command):
+            return True
         return False
 
     def get_tab(self, tab_id):

@@ -7,6 +7,8 @@ from . import BotCommand
 
 
 class TotalCommand(BotCommand):
+    command = '/total'
+
     def __init__(self, *args, **kwargs):
         self.commands = [
             {'text': "Today's Total",
@@ -50,8 +52,3 @@ class TotalCommand(BotCommand):
                         random.choice(['ASTONISHED_FACE', 'FACE_SCREAMING_IN_FEAR']))
         self._say(message, 'Grand Total: {} {}'.format(tab.grandtotal, emoji),
                   reply_markup=telegram.ReplyKeyboardHide())
-
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/total'):
-            return True
