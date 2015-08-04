@@ -1,3 +1,4 @@
 db.fs*
 *.py[co]
 .coverage
+.env
