@@ -123,7 +123,7 @@ def main(webserver):
         import json
         from bottle import request, route, run
 
-        if not getattr(config, 'webhook', False):
+        if not config.webhook:
             print 'Set webhook'
             sys.exit(-1)
 
