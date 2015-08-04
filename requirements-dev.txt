@@ -2,4 +2,3 @@ pytest
 mock
 pytest-cov
 flake8
-python-decouple
