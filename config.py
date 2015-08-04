@@ -1,7 +1,5 @@
-db_filename = 'db.fs'
-port = '8899'
+from decouple import config
 
-try:
-    from local_config import *  # noqa
-except ImportError:
-    pass
+token = config('TOKEN', default='')
+db_filename = config('DB_FILENAME', default='db.fs')
+port = config('PORT', defaul='8899')
