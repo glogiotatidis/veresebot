@@ -6,10 +6,7 @@ from . import BotCommand
 
 
 class ExportCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/export'):
-            return True
+    command = '/export'
 
     def default(self, message):
         from tempfile import mkstemp

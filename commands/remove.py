@@ -3,10 +3,7 @@ from add import AddCommand
 
 
 class RemoveCommand(AddCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/remove'):
-            return True
+    command = '/remove'
 
     def remove(self, tab_id, user_id, message_id, date, amount, reason=''):
         tab = self.get_tab(tab_id)

@@ -7,6 +7,8 @@ from . import BotCommand, CommandError
 
 
 class AddCommand(BotCommand):
+    command = '/add'
+
     def get_amount(self, content):
         match = re.match('((/add )|(/remove ))?(?P<amount>\d+(\.\d+)?)( (?P<reason>.*))?', content)
         if not match:
@@ -37,8 +39,3 @@ class AddCommand(BotCommand):
         self.add(message.chat.id, message.from_user.id, message.message_id,
                  message.date, amount, reason)
         self._say(message, telegram.Emoji.THUMBS_UP_SIGN)
-
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/add'):
-            return True

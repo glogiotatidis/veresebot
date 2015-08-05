@@ -9,10 +9,7 @@ TZ = tzwhere.tzwhere()
 
 
 class SettingsCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/settings'):
-            return True
+    command = '/settings'
 
     def default(self, message):
         keyboard = [['Set timezone']]

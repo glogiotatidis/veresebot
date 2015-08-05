@@ -2,10 +2,7 @@ from . import BotCommand
 
 
 class ClearCommand(BotCommand):
-    @classmethod
-    def match(cls, message):
-        if message.text and message.text.startswith('/clear'):
-            return True
+    command = '/clear'
 
     def default(self, message):
         if message.text and message.text == '/clear do as I say':
