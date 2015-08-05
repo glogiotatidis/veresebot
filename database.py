@@ -74,14 +74,24 @@ class Tab(persistent.Persistent):
 
         self._p_changed__ = True
 
-    def get_todays_total(self):
-        today = arrow.now(self.tz).floor('day')
+    def get_total(self, from_date=None, to_date=None):
+        if not from_date and not to_date:
+            return self.grandtotal
+
+        if from_date and to_date and from_date > to_date:
+            return -1
+
         total = 0
         for entry in self.entries:
-            if entry.date >= today:
-                total += entry.amount
-            else:
-                break
+            if to_date and to_date < entry.date:
+                continue
+
+            if from_date:
+                if entry.date >= from_date:
+                    total += entry.amount
+                else:
+                    break
+
         return total
 
 
