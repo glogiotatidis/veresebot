@@ -100,13 +100,14 @@ class VereseBot(telegram.Bot):
 
         for cmd in self.COMMANDS:
             if cmd.match(message):
+                logger.debug('Calling process_{}'.format(cmd))
+                cmd(bot=self)(message)
                 break
         else:
+            self.say(message, 'Are you drunk matey?')
             logger.debug('No command found: {}'.format(message.message_id))
             return
 
-        logger.debug('Calling process_{}'.format(cmd))
-        cmd(bot=self)(message)
 
 
 @click.command()
