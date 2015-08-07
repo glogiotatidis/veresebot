@@ -46,24 +46,24 @@ class TotalCommand(BotCommand):
         tab = self.get_tab(message.chat.id)
         from_date = arrow.now(tab.tz).floor('month')
         self.bot.say(message, "Month's Total: {}".format(tab.get_total(from_date=from_date)),
-                  reply_markup=telegram.ReplyKeyboardHide())
+                     reply_markup=telegram.ReplyKeyboardHide())
 
     def get_last_month_total(self, message):
         tab = self.get_tab(message.chat.id)
         from_date, to_date = arrow.now(tab.tz).replace(months=-1).span('month')
         total = tab.get_total(from_date=from_date, to_date=to_date)
         self.bot.say(message, "Last Month's Total: {}".format(total),
-                  reply_markup=telegram.ReplyKeyboardHide())
+                     reply_markup=telegram.ReplyKeyboardHide())
 
     def get_todays_total(self, message):
         tab = self.get_tab(message.chat.id)
         today = arrow.now(tab.tz).floor('day')
         self.bot.say(message, "Today's Total: {}".format(tab.get_total(from_date=today)),
-                  reply_markup=telegram.ReplyKeyboardHide())
+                     reply_markup=telegram.ReplyKeyboardHide())
 
     def get_grand_total(self, message):
         tab = self.get_tab(message.chat.id)
         emoji = getattr(telegram.Emoji,
                         random.choice(['ASTONISHED_FACE', 'FACE_SCREAMING_IN_FEAR']))
         self.bot.say(message, 'Grand Total: {} {}'.format(tab.grandtotal, emoji),
-                  reply_markup=telegram.ReplyKeyboardHide())
+                     reply_markup=telegram.ReplyKeyboardHide())

@@ -22,7 +22,7 @@ class SettingsCommand(BotCommand):
     def process_settings(self, message):
         if message.text and message.text == 'Set timezone':
             msg = self.bot.say(message, "Send me your location and I'll do the rest",
-                            telegram.ForceReply(selective=True))
+                               telegram.ForceReply(selective=True))
             self.queue(msg, partial(self.set_timezone))
 
         else:
