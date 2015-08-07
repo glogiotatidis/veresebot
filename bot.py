@@ -21,7 +21,7 @@ from commands.split import SplitCommand
 from commands.total import TotalCommand
 
 
-class VereseBot(object):
+class VereseBot(telegram.Bot):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
                 SplitCommand, SettingsCommand]
@@ -31,26 +31,23 @@ class VereseBot(object):
         self.db = DB()
 
         # Connect to Telegram
-        self._bot = telegram.Bot(token=config.token)
+        super(VereseBot, self).__init__(token=config.token)
         self.queue = {}
 
-    def set_bot_name(self):
-        msg = self._bot.getMe()
-        self.bot_name = msg.name
 
     def say(self, reply_to_message, text, reply_markup=None):
         # The telegram library doesn't play well with unicode, oh well.
         text = text.encode('utf-8') if isinstance(text, unicode) else text
         reply_to_message_id = reply_to_message.message_id if reply_markup else None
-        return self._bot.sendMessage(chat_id=reply_to_message.chat.id,
-                                     text=text,
-                                     reply_to_message_id=reply_to_message_id,
-                                     reply_markup=reply_markup)
+        return self.sendMessage(chat_id=reply_to_message.chat.id,
+                                text=text,
+                                reply_to_message_id=reply_to_message_id,
+                                reply_markup=reply_markup)
 
     def get_updates(self):
         logger.debug('')
         last_update = self.db.root.last_update
-        updates = self._bot.getUpdates(offset=last_update)
+        updates = self.getUpdates(offset=last_update)
         return updates
 
     def poll(self):
@@ -127,7 +124,7 @@ def main(webserver):
             print 'Set webhook'
             sys.exit(-1)
 
-        bot._bot.setWebhook(config.webhook)
+        bot.setWebhook(config.webhook)
 
         @route('/', method='POST')
         def home():

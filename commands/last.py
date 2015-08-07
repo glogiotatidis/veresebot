@@ -15,4 +15,4 @@ class LastCommand(BotCommand):
             for entry in tab.entries[:howmany]])
         if not last_entries:
             last_entries = 'No entries!'
-        self._say(message, last_entries)
+        self.bot.say(message, last_entries)

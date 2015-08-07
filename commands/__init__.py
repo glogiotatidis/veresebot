@@ -11,7 +11,6 @@ class BotCommand(object):
     def __init__(self, bot, *args, **kwargs):
         self.bot = bot
         self._db = self.bot.db
-        self._say = self.bot.say
 
     def __call__(self, message, *args, **kwargs):
         return self.default(message, *args, **kwargs)

@@ -5,4 +5,4 @@ class PingCommand(BotCommand):
     command = '/ping'
 
     def default(self, message):
-        self._say(message, 'Pong!')
+        self.bot.say(message, 'Pong!')

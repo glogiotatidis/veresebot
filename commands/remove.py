@@ -13,8 +13,8 @@ class RemoveCommand(AddCommand):
         try:
             amount, reason = self.get_amount(message.text)
         except CommandError:
-            self._say(message, "Nope, I don't get ya")
+            self.bot.say(message, "Nope, I don't get ya")
             return
         self.remove(message.chat.id, message.from_user.id, message.message_id,
                     message.date, amount, reason)
-        self._say(message, 'Removed {}'.format(amount))
+        self.bot.say(message, 'Removed {}'.format(amount))

@@ -27,15 +27,15 @@ class AddCommand(BotCommand):
         if content:
             self.process_howmuch(message)
         else:
-            msg = self._say(message, 'How much?', reply_markup=telegram.ForceReply(selective=True))
+            msg = self.bot.say(message, 'How much?', reply_markup=telegram.ForceReply(selective=True))
             self.queue(msg, partial(self.process_howmuch))
 
     def process_howmuch(self, message):
         try:
             amount, reason = self.get_amount(message.text)
         except CommandError:
-            self._say(message, "Nope, I don't get ya")
+            self.bot.say(message, "Nope, I don't get ya")
             return
         self.add(message.chat.id, message.from_user.id, message.message_id,
                  message.date, amount, reason)
-        self._say(message, telegram.Emoji.THUMBS_UP_SIGN)
+        self.bot.say(message, telegram.Emoji.THUMBS_UP_SIGN)

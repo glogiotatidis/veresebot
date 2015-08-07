@@ -24,5 +24,5 @@ class ExportCommand(BotCommand):
                        for x in [user_repr, entry.amount, entry.date, entry.reason]]
                 csvwriter.writerow(row)
 
-        self.bot._bot.sendDocument(chat_id=message.chat.id, document=open(csvfilename, 'rb'))
+        self.bot.sendDocument(chat_id=message.chat.id, document=open(csvfilename, 'rb'))
         os.unlink(csvfilename)
