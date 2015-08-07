@@ -109,7 +109,6 @@ class VereseBot(telegram.Bot):
             return
 
 
-
 @click.command()
 @click.option('--webserver/--polling', default=True)
 def main(webserver):
