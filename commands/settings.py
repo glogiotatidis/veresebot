@@ -29,6 +29,8 @@ class SettingsCommand(BotCommand):
             self.bot.say(message, 'Nope')
 
     def set_timezone(self, message):
+        if not message.location:
+            self.bot.say(message, "Nope that didn't work, try again.")
         tab, created = self._db.get_or_create_tab(message.chat.id)
         tz = TZ.tzNameAt(message.location.latitude, message.location.longitude)
         tab.set_timezone(tz)
