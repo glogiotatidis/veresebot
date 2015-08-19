@@ -18,13 +18,14 @@ from commands.ping import PingCommand
 from commands.remove import RemoveCommand
 from commands.settings import SettingsCommand
 from commands.split import SplitCommand
+from commands.start import StartCommand
 from commands.total import TotalCommand
 
 
 class VereseBot(telegram.Bot):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
-                SplitCommand, SettingsCommand]
+                StartCommand, SplitCommand, SettingsCommand]
 
     def __init__(self):
         self._stay_awake = 30
