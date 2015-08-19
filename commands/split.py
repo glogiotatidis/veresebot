@@ -12,5 +12,5 @@ class SplitCommand(BotCommand):
         text = ''
         for user_id, amount in tab.users.items():
             user = self._db.root.users[user_id]
-            text += u'{}: {}\n'.format(user.first_name, per_person - amount)
+            text += u'{}: {:.2f}\n'.format(user.first_name, per_person - amount)
         self.bot.say(message, text)
