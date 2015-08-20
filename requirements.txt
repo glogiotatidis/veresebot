@@ -8,3 +8,4 @@ click==4.1
 bottle==0.12.8
 zodbpickle==0.6.0
 python-decouple==2.3
+honcho==0.6.6
