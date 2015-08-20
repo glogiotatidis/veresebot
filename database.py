@@ -6,6 +6,7 @@ import ZODB.FileStorage
 import arrow
 import persistent
 import transaction
+import zodburi
 
 import config
 from log import logger
@@ -100,7 +101,7 @@ class DB(object):
 
     def __init__(self):
         # Setup DB
-        storage = ZODB.FileStorage.FileStorage(config.db_filename)
+        storage = zodburi.resolve_uri(config.database_url)[0]()
         self._db = ZODB.DB(storage)
         self._connection = self._db.open()
         self.root = self._connection.root
