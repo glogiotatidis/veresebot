@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from time import sleep
+from urlparse import urlparse
 
 import click
 import telegram
@@ -126,12 +127,17 @@ def main(webserver):
 
         bot.setWebhook(config.webhook)
 
-        @route('/', method='POST')
-        def home():
+        @route(urlparse(config.webhook).path or '/', method='POST')
+        def handle_message():
             data = json.load(request.body)
             update = telegram.Update.de_json(data)
             bot.process_updates([update])
             return 'OK'
+
+        @route('/', method='GET')
+        def home():
+            return 'Hi :)'
+
 
         try:
             run(host='0.0.0.0', port=config.port, reloader=False)
