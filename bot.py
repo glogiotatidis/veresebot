@@ -145,6 +145,8 @@ def main(webserver):
             bot.db.close()
 
     else:
+        bot.setWebhook('')
+
         try:
             while True:
                 timeout = bot.poll()
