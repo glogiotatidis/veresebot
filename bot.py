@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import inspect
 import sys
 from time import sleep
 from urlparse import urlparse
@@ -11,32 +12,27 @@ import config
 from database import *  # noqa
 from log import logger
 
-from commands.add import AddCommand
-from commands.clear import ClearCommand
-from commands.export import ExportCommand
-from commands.last import LastCommand
-from commands.ping import PingCommand
-from commands.remove import RemoveCommand
-from commands.settings import SettingsCommand
-from commands.split import SplitCommand
-from commands.start import StartCommand
-from commands.stats import StatsCommand
-from commands.total import TotalCommand
+from commands import BotCommand
 
 
 class VereseBot(telegram.Bot):
-    COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
-                ClearCommand, LastCommand, PingCommand, ExportCommand,
-                StartCommand, SplitCommand, SettingsCommand,
-                StatsCommand]
-
     def __init__(self):
+        self.commands = []
         self._stay_awake = 30
         self.db = DB()
+
+        self.import_commands()
 
         # Connect to Telegram
         super(VereseBot, self).__init__(token=config.token)
         self.queue = {}
+
+    def import_commands(self):
+        for command_file in sorted(os.listdir('commands')):
+            mod = importlib.import_module('commands.{}'.format(command_file[:-3]))
+            for member_name, member_type in inspect.getmembers(mod):
+                if inspect.isclass(member_type) and issubclass(member_type, BotCommand):
+                    self.commands.append(member_type)
 
     def say(self, reply_to_message, text, reply_markup=None):
         # The telegram library doesn't play well with unicode, oh well.
@@ -102,7 +98,7 @@ class VereseBot(telegram.Bot):
                 k(message)
                 return
 
-        for cmd in self.COMMANDS:
+        for cmd in self.commands:
             if cmd.match(message):
                 logger.debug('Calling process_{}'.format(cmd))
                 cmd(bot=self)(message)
