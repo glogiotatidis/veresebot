@@ -20,13 +20,15 @@ from commands.remove import RemoveCommand
 from commands.settings import SettingsCommand
 from commands.split import SplitCommand
 from commands.start import StartCommand
+from commands.stats import StatsCommand
 from commands.total import TotalCommand
 
 
 class VereseBot(telegram.Bot):
     COMMANDS = [AddCommand, RemoveCommand, TotalCommand,
                 ClearCommand, LastCommand, PingCommand, ExportCommand,
-                StartCommand, SplitCommand, SettingsCommand]
+                StartCommand, SplitCommand, SettingsCommand,
+                StatsCommand]
 
     def __init__(self):
         self._stay_awake = 30
