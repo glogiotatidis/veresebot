@@ -109,7 +109,7 @@ class DB(object):
 
     def migrate(self):
         for migration_file in sorted(os.listdir('migrations')):
-            if not migration_file.startswith('migration_'):
+            if migration_file.endswith('.pyc') or not migration_file.startswith('migration_'):
                 continue
             mod = importlib.import_module('migrations.{}'.format(migration_file[:-3]))
             if not mod.Migration.is_applicable(self.root):

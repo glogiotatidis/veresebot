@@ -28,7 +28,9 @@ class VereseBot(telegram.Bot):
         self.queue = {}
 
     def import_commands(self):
-        for command_file in sorted(os.listdir('commands')):
+        for command_file in sorted(os.listdir('commands'))[1:]:
+            if command_file.endswith('.pyc') or command_file.startswith('__'):
+                continue
             mod = importlib.import_module('commands.{}'.format(command_file[:-3]))
             for member_name, member_type in inspect.getmembers(mod):
                 if inspect.isclass(member_type) and issubclass(member_type, BotCommand):
