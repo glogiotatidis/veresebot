@@ -1,6 +1,7 @@
+import importlib
+import os
 from collections import defaultdict
 
-import BTrees.OOBTree
 import ZODB
 import ZODB.FileStorage
 import arrow
@@ -97,7 +98,6 @@ class Tab(persistent.Persistent):
 
 
 class DB(object):
-    DB_VERSION = 2
 
     def __init__(self):
         # Setup DB
@@ -105,18 +105,19 @@ class DB(object):
         self._db = ZODB.DB(storage)
         self._connection = self._db.open()
         self.root = self._connection.root
-        if not hasattr(self.root, '_db_version'):
-            self.root._db_version = self.DB_VERSION
-        if not hasattr(self.root, 'last_update'):
-            self.root.last_update = 0
-        if not hasattr(self.root, 'tabs'):
-            self.root.tabs = BTrees.OOBTree.BTree()
-        if not hasattr(self.root, 'users'):
-            self.root.users = BTrees.OOBTree.BTree()
-        if not hasattr(self.root, 'stats'):
-            self.root.stats = {
-                'number_of_messages': 0
-                }
+        self.migrate()
+
+    def migrate(self):
+        for migration_file in sorted(os.listdir('migrations')):
+            if not migration_file.startswith('migration_'):
+                continue
+            mod = importlib.import_module('migrations.{}'.format(migration_file[:-3]))
+            if not mod.Migration.is_applicable(self.root):
+                logger.debug('Skipping migration {}'.format(mod.Migration.DB_VERSION))
+                continue
+            migration = mod.Migration(self.root)
+            logger.info('Applying migration {}'.format(migration.DB_VERSION))
+            migration.apply()
 
     def get_or_create_tab(self, tab_id):
         if tab_id in self.root.tabs:
