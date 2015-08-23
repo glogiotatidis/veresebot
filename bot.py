@@ -29,6 +29,8 @@ class VereseBot(telegram.Bot):
 
     def import_commands(self):
         for command_file in sorted(os.listdir('commands')):
+            if command_file == '__init__.py':
+                continue
             mod = importlib.import_module('commands.{}'.format(command_file[:-3]))
             for member_name, member_type in inspect.getmembers(mod):
                 if inspect.isclass(member_type) and issubclass(member_type, BotCommand):
