@@ -13,5 +13,7 @@ class StatsCommand(BotCommand):
         return super(StatsCommand, cls).match(message)
 
     def default(self, message):
-        self.bot.say(message, 'Number of messages: {}'.format(
-            self.bot.db.root.stats['number_of_messages']))
+        msg = ''
+        for key, value in self.bot.db.root.stats.items():
+            msg += '{}: {}\n'.format(key.replace('_', ' ').capitalize(), value)
+        self.bot.say(message, msg)
