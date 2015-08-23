@@ -125,6 +125,8 @@ class DB(object):
 
         tab = Tab(tab_id)
         self.root.tabs[tab_id] = tab
+        self.root.stats['number_of_tabs'] += 1
+        logger.debug('Created tab {}'.format(tab_id))
         return tab, True
 
     def get_or_create_user(self, user_id):
@@ -133,6 +135,7 @@ class DB(object):
 
         user = User(user_id)
         self.root.users[user_id] = user
+        self.root.stats['number_of_users'] += 1
         logger.debug('Created user {}'.format(user_id))
         return user, True
 
