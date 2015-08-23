@@ -28,7 +28,7 @@ class VereseBot(telegram.Bot):
         self.queue = {}
 
     def import_commands(self):
-        for command_file in sorted(os.listdir('commands'))[1:]:
+        for command_file in sorted(os.listdir('commands')):
             if command_file.endswith('.pyc') or command_file.startswith('__'):
                 continue
             mod = importlib.import_module('commands.{}'.format(command_file[:-3]))
