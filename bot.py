@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import importlib
 import inspect
+import os
 import sys
 from time import sleep
 from urlparse import urlparse
@@ -9,7 +11,7 @@ import click
 import telegram
 
 import config
-from database import *  # noqa
+from database import DB
 from log import logger
 
 from commands import BotCommand
