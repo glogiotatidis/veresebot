@@ -1,11 +1,9 @@
 from functools import partial
 
+import requests
 import telegram
-from tzwhere import tzwhere
 
 from . import BotCommand
-
-TZ = tzwhere.tzwhere()
 
 
 class SettingsCommand(BotCommand):
@@ -31,7 +29,17 @@ class SettingsCommand(BotCommand):
     def set_timezone(self, message):
         if not message.location:
             self.bot.say(message, "Nope that didn't work, try again.")
+            return
+
         tab, created = self._db.get_or_create_tab(message.chat.id)
-        tz = TZ.tzNameAt(message.location.latitude, message.location.longitude)
-        tab.set_timezone(tz)
-        self.bot.say(message, 'Timezone set to {}'.format(tz))
+
+        geonames_url = 'http://api.geonames.org/timezoneJSON?lat={lat}&lng={lon}&username=demo'
+        res = requests.get(geonames_url.format(lat=message.location.latitude,
+                                               lon=message.location.longitude)).json()
+
+        if 'timezoneId' not in res:
+            self.bot.say(message, 'Cannot set timezone')
+            return
+
+        tab.set_timezone(res['timezoneId'])
+        self.bot.say(message, 'Timezone set to {}'.format(res['timezoneId']))

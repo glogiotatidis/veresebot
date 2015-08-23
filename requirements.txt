@@ -2,7 +2,6 @@ python-telegram-bot==1.9
 ZODB==4.2.0
 transaction==1.4.4
 BTrees==4.1.4
-tzwhere==2.2.
 arrow==0.6.0
 click==4.1
 bottle==0.12.8
@@ -12,3 +11,4 @@ honcho==0.6.6
 RelStorage>=1.6.0b3
 zodburi==2.0
 psycopg2==2.6.1
+requests
