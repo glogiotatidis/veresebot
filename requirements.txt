@@ -1,4 +1,4 @@
-python-telegram-bot==1.9
+python-telegram-bot==2.8.7
 ZODB==4.2.0
 transaction==1.4.4
 BTrees==4.1.4
