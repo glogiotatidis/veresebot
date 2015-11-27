@@ -76,6 +76,24 @@ class Tab(persistent.Persistent):
 
         self._p_changed__ = True
 
+
+    def get_entries(self, from_date=None, to_date=None):
+        if from_date and to_date and from_date > to_date:
+            return []
+
+        entries = []
+        for entry in self.entries:
+            if to_date and to_date < entry.date:
+                continue
+
+            if from_date:
+                if entry.date >= from_date:
+                    entries.append(entry)
+                else:
+                    break
+
+        return entries
+
     def get_total(self, from_date=None, to_date=None):
         if not from_date and not to_date:
             return self.grandtotal
@@ -84,17 +102,12 @@ class Tab(persistent.Persistent):
             return -1
 
         total = 0
-        for entry in self.entries:
-            if to_date and to_date < entry.date:
-                continue
-
-            if from_date:
-                if entry.date >= from_date:
-                    total += entry.amount
-                else:
-                    break
+        entries = self.get_entries(from_date, to_date)
+        for entry in entries:
+            total += entry.amount
 
         return total
+
 
 
 class DB(object):
