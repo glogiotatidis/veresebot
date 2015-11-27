@@ -5,7 +5,6 @@ import inspect
 import os
 import sys
 from time import sleep
-from urlparse import urlparse
 
 import click
 import telegram
@@ -123,6 +122,8 @@ def main(webserver):
 
     if webserver:
         import json
+        from urlparse import urlparse
+
         from bottle import request, route, run
 
         if not config.webhook:

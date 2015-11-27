@@ -76,7 +76,6 @@ class Tab(persistent.Persistent):
 
         self._p_changed__ = True
 
-
     def get_entries(self, from_date=None, to_date=None):
         if from_date and to_date and from_date > to_date:
             return []
@@ -107,7 +106,6 @@ class Tab(persistent.Persistent):
             total += entry.amount
 
         return total
-
 
 
 class DB(object):
