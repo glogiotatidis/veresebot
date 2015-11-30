@@ -62,7 +62,7 @@ class SplitCommand(BotCommand):
         if not tab.users:
             return
         text = self._split(tab.entries)
-        self.bot.say(message, text)
+        self.bot.say(message, text, reply_markup=telegram.ReplyKeyboardHide())
 
     def get_this_month_split(self, message):
         tab = self.get_tab(message.chat.id)
@@ -71,7 +71,7 @@ class SplitCommand(BotCommand):
         from_date = arrow.now(tab.tz).floor('month')
         entries = tab.get_entries(from_date)
         text = self._split(entries)
-        self.bot.say(message, text)
+        self.bot.say(message, text, reply_markup=telegram.ReplyKeyboardHide())
 
     def get_last_month_split(self, message):
         tab = self.get_tab(message.chat.id)
@@ -80,4 +80,4 @@ class SplitCommand(BotCommand):
         from_date, to_date = arrow.now(tab.tz).replace(months=-1).span('month')
         entries = tab.get_entries(from_date, to_date)
         text = self._split(entries)
-        self.bot.say(message, text)
+        self.bot.say(message, text, reply_markup=telegram.ReplyKeyboardHide())
