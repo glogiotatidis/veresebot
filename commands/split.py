@@ -54,7 +54,9 @@ class SplitCommand(BotCommand):
         text = ''
         for user_id, amount in users.items():
             user = self._db.root.users[user_id]
-            text += u'{}: {:.2f}\n'.format(user.first_name, per_person - amount)
+            verb = 'Owes' if per_person >= amount else 'Receives'
+            text += u'{}: Total spend {}. {} {:.2f}\n'.format(
+                user.first_name, amount, verb, per_person - amount)
         return text
 
     def get_all_split(self, message):
