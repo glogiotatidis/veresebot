@@ -37,12 +37,16 @@ class VereseBot(telegram.Bot):
                 if inspect.isclass(member_type) and issubclass(member_type, BotCommand):
                     self.commands.append(member_type)
 
-    def say(self, reply_to_message, text, reply_markup=None, markdown=False):
+    def say(self, message, text, reply_markup=None, markdown=False,
+            reply_to_message=True):
         # The telegram library doesn't play well with unicode, oh well.
         text = text.encode('utf-8') if isinstance(text, unicode) else text
-        reply_to_message_id = reply_to_message.message_id if reply_markup else None
+        if reply_markup and reply_to_message:
+            reply_to_message_id = message.message_id
+        else:
+            reply_to_message_id = None
         parse_mode = telegram.ParseMode.MARKDOWN if markdown else None
-        return self.sendMessage(chat_id=reply_to_message.chat.id,
+        return self.sendMessage(chat_id=message.chat.id,
                                 text=text,
                                 reply_to_message_id=reply_to_message_id,
                                 reply_markup=reply_markup,
