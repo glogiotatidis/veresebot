@@ -1,6 +1,3 @@
-import random
-from functools import partial
-
 import arrow
 import telegram
 
@@ -10,60 +7,29 @@ from . import BotCommand
 class TotalCommand(BotCommand):
     command = '/total'
 
-    def __init__(self, *args, **kwargs):
-        self.commands = [
-            {'text': "Today's Total",
-             'function': self.get_todays_total},
-            {'text': 'This Month',
-             'function': self.get_month_total},
-            {'text': 'Last Month',
-             'function': self.get_last_month_total},
-            {'text': 'Grand Total',
-             'function': self.get_grand_total},
-            ]
-        super(TotalCommand, self).__init__(*args, **kwargs)
-
     def default(self, message):
-        keyboard = [["Today's Total"],
-                    ["This Month", "Last Month"],
-                    ['Grand Total']]
-        reply_markup = telegram.ReplyKeyboardMarkup(
-            keyboard, resize_keyboard=True,
-            one_time_keyboard=True, selective=True)
-        msg = self.bot.say(message, 'Choose', reply_markup=reply_markup)
-        self.queue(msg, partial(self.process_which_total))
-
-    def process_which_total(self, message):
-        if not message.text:
-            self.bot.say(message, 'Nope')
-            return
-
-        for command in self.commands:
-            if message.text == command['text']:
-                command['function'](message)
-
-    def get_month_total(self, message):
+        text = ''
         tab = self.get_tab(message.chat.id)
+
+        from_date = arrow.now(tab.tz).floor('day')
+        total = tab.get_total(from_date=from_date)
+        text += "Today's Total: *{:.2f}*\n".format(total)
+
+        from_date = arrow.now(tab.tz).floor('week')
+        total = tab.get_total(from_date=from_date)
+        text += "Week's Total: *{:.2f}*\n".format(total)
+
         from_date = arrow.now(tab.tz).floor('month')
-        self.bot.say(message, "Month's Total: {:.2f}".format(tab.get_total(from_date=from_date)),
-                     reply_markup=telegram.ReplyKeyboardHide())
+        total = tab.get_total(from_date=from_date)
+        text += "Current Month's Total: *{:.2f}*\n".format(total)
 
-    def get_last_month_total(self, message):
-        tab = self.get_tab(message.chat.id)
         from_date, to_date = arrow.now(tab.tz).replace(months=-1).span('month')
         total = tab.get_total(from_date=from_date, to_date=to_date)
-        self.bot.say(message, "Last Month's Total: {:.2f}".format(total),
-                     reply_markup=telegram.ReplyKeyboardHide())
+        text += "Last Month's Total: *{:.2f}*\n".format(total)
 
-    def get_todays_total(self, message):
-        tab = self.get_tab(message.chat.id)
-        today = arrow.now(tab.tz).floor('day')
-        self.bot.say(message, "Today's Total: {:.2f}".format(tab.get_total(from_date=today)),
-                     reply_markup=telegram.ReplyKeyboardHide())
+        from_date = arrow.now(tab.tz).floor('year')
+        total = tab.get_total(from_date=from_date)
+        text += "Current Year's Total: *{:.2f}*\n".format(total)
 
-    def get_grand_total(self, message):
-        tab = self.get_tab(message.chat.id)
-        emoji = getattr(telegram.Emoji,
-                        random.choice(['ASTONISHED_FACE', 'FACE_SCREAMING_IN_FEAR']))
-        self.bot.say(message, 'Grand Total: {:.2f} {}'.format(tab.grandtotal, emoji),
-                     reply_markup=telegram.ReplyKeyboardHide())
+        self.bot.say(message, text, reply_markup=telegram.ReplyKeyboardHide(),
+                     markdown=True, reply_to_message=False)
