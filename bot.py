@@ -4,6 +4,7 @@ import importlib
 import inspect
 import os
 import sys
+from datetime import datetime, timedelta
 from time import sleep
 
 import click
@@ -79,6 +80,13 @@ class VereseBot(telegram.Bot):
             self.db.commit()
 
     def process_message(self, message):
+        # Cleanup old messages in queue
+        now = datetime.utcnow()
+        tdelta = timedelta(seconds=config.command_timeout)
+
+        self.queue = {key: value for (key, value) in self.queue.items()
+                      if value['timestamp'] + tdelta > now}
+
         # Update stats
         self.db.root.stats['number_of_messages'] += 1
 
@@ -104,7 +112,7 @@ class VereseBot(telegram.Bot):
             if key in self.queue:
                 k = self.queue.pop(key)
                 logger.debug('Calling queued {}'.format(k))
-                k(message)
+                k['command'](message)
                 return
 
         for cmd in self.commands:

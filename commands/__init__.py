@@ -1,3 +1,5 @@
+import datetime
+
 import telegram
 
 
@@ -22,7 +24,10 @@ class BotCommand(object):
             msg_id = message.message_id+1
         else:
             msg_id = message.message_id
-        self.bot.queue['{}_{}'.format(message.chat.id, msg_id)] = next_cmd
+        self.bot.queue['{}_{}'.format(message.chat.id, msg_id)] = {
+            'command': next_cmd,
+            'timestamp': datetime.datetime.utcnow()
+        }
 
     @classmethod
     def match(cls, message):
