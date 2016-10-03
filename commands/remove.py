@@ -19,4 +19,5 @@ class RemoveCommand(AddCommand):
             return
         self.remove(message.chat.id, message.from_user.id, message.message_id,
                     message.date, amount, reason)
-        self.bot.say(message, '{} OK, removed {}'.format(telegram.Emoji.WHITE_HEAVY_CHECK_MARK, amount))
+        self.bot.say(message, '{} OK, removed {}'.format(telegram.Emoji.WHITE_HEAVY_CHECK_MARK,
+                                                         amount))

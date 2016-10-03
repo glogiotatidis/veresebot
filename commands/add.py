@@ -39,4 +39,5 @@ class AddCommand(BotCommand):
             return
         self.add(message.chat.id, message.from_user.id, message.message_id,
                  message.date, amount, reason)
-        self.bot.say(message, '{} OK, added {}'.format(telegram.Emoji.WHITE_HEAVY_CHECK_MARK, amount))
+        self.bot.say(message, '{} OK, added {}'.format(telegram.Emoji.WHITE_HEAVY_CHECK_MARK,
+                                                       amount))
