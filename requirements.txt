@@ -1,6 +1,6 @@
 python-telegram-bot==5.3.0
 ZODB==5.1.1
-transaction==2.0.3
+transaction==2.1.0
 BTrees==4.4.1
 arrow==0.10.0
 click==6.7
