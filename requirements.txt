@@ -11,5 +11,5 @@ python-decouple==2.3
 honcho==0.6.6
 RelStorage==1.6.0b3
 zodburi==2.0
-psycopg2==2.6.2
+psycopg2==2.7.6.1
 requests==2.20.1
