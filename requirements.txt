@@ -12,4 +12,4 @@ honcho==0.6.6
 RelStorage==1.6.0b3
 zodburi==2.0
 psycopg2==2.6.2
-requests==2.11.1
+requests==2.20.1
