@@ -10,7 +10,7 @@ class AddCommand(BotCommand):
     command = '/add'
 
     def get_amount(self, content):
-        match = re.match('((/add )|(/remove ))?(?P<amount>\d+(\.\d+)?)( (?P<reason>.*))?', content)
+        match = re.match(r'((/add )|(/remove ))?(?P<amount>\d+(\.\d+)?)( (?P<reason>.*))?', content)
         if not match:
             raise CommandError()
 
