@@ -5,7 +5,7 @@ transaction==1.4.4
 BTrees==4.1.4
 arrow==0.6.0
 click==4.1
-bottle==0.12.13
+bottle==0.12.19
 zodbpickle==0.6.0
 python-decouple==2.3
 honcho==0.6.6
